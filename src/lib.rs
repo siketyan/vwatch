@@ -21,10 +21,10 @@ cfg_if! {
 }
 
 #[wasm_bindgen]
-pub fn wasm_main(context: &JsValue) -> JsValue {
+pub async fn wasm_main(context: &JsValue) -> JsValue {
     JsValue::from_serde(
         &(match context.into_serde::<Context>() {
-            Ok(ctx) => ctx.handle_http_request(),
+            Ok(ctx) => ctx.handle_http_request().await,
             Err(error) => HttpResponse {
                 status: 400,
                 body: error.to_string(),

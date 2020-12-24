@@ -7,6 +7,7 @@ pub(crate) fn hello() -> InteractionResponse {
         ty: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionApplicationCommandCallbackData {
             content: "Hello, world!".to_string(),
+            embeds: None,
         }),
     }
 }

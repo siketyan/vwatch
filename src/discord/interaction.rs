@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::discord::command::handle_command;
+use crate::discord::embed::Embed;
 use crate::error::Error;
 
 #[derive(Deserialize_repr)]
@@ -23,13 +24,28 @@ pub(crate) enum InteractionResponseType {
 }
 
 #[derive(Deserialize)]
+#[serde(untagged)]
+pub(crate) enum ApplicationCommandInteractionDataOptionValue {
+    Integer(i32),
+    String(String),
+}
+
+#[derive(Deserialize)]
+struct ApplicationCommandInteractionDataOption {
+    pub(crate) name: String,
+    pub(crate) value: Option<ApplicationCommandInteractionDataOptionValue>,
+}
+
+#[derive(Deserialize)]
 pub(crate) struct ApplicationCommandInteractionData {
     pub(crate) name: String,
+    pub(crate) options: Option<Vec<ApplicationCommandInteractionDataOption>>,
 }
 
 #[derive(Serialize)]
 pub(crate) struct InteractionApplicationCommandCallbackData {
     pub(crate) content: String,
+    pub(crate) embeds: Option<Vec<Embed>>,
 }
 
 #[derive(Deserialize)]
@@ -56,13 +72,13 @@ pub(crate) struct InteractionResponse {
 }
 
 impl Interaction {
-    pub(crate) fn perform(&self) -> Result<InteractionResponse, Error> {
+    pub(crate) async fn perform(&self) -> Result<InteractionResponse, Error> {
         Ok(match self.ty {
             InteractionType::Ping => InteractionResponse {
                 ty: InteractionResponseType::Pong,
                 data: None,
             },
-            InteractionType::ApplicationCommand => handle_command(self.data()?),
+            InteractionType::ApplicationCommand => handle_command(self.data()?).await?,
         })
     }
 }
